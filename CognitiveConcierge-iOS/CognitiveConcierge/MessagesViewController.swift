@@ -16,7 +16,7 @@
 
 import UIKit
 import JSQMessagesViewController
-import ConversationV1
+//import ConversationV1
 import TextToSpeechV1
 import SpeechToTextV1
 import AVFoundation

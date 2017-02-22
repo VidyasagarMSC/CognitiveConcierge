@@ -20,7 +20,7 @@ import LoggerAPI
 import CloudFoundryEnv
 
 struct Constants {
-    static var googleAPIKey = "INSERT_GOOGLE_API_KEY_HERE"
+    static var googleAPIKey = "AIzaSyDPxZVXEmms9E0HEvSeh7VeeZKFaYBGDYo"
     static var location = "36.11,-115.17"
 }
 

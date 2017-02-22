@@ -17,9 +17,11 @@
 import Foundation
 import UIKit
 import GooglePlaces
+import BMSCore
+import BMSAnalytics
 
 class RestaurantViewController: UIViewController {
-
+    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var bannerView: UIView!
     @IBOutlet weak var backButton: UIButton!
@@ -34,6 +36,8 @@ class RestaurantViewController: UIViewController {
     fileprivate var onePartStackView : HorizontalOnePartStackView?
     private var mySubview : UIView?
     fileprivate var watsonOverlay: WatsonOverlay?
+    let logger = Logger.logger(name: "My Logger")
+    
     
     //// Endpoint manager to make API calls.
     private let endpointManager = EndpointManager.sharedInstance
@@ -45,9 +49,10 @@ class RestaurantViewController: UIViewController {
     fileprivate let kNumberOfRowsInTableViewSection = 1
     
     override func viewDidLoad() {
+        logger.info(message: "App Just loaded")
         super.viewDidLoad()
         loadKeyWords()
-
+        
         self.onePartStackView = HorizontalOnePartStackView.instanceFromNib()
         self.setupStackView(isLoading: true)
         getRestaurantRecommendations(occasion: self.occasion!)
@@ -59,10 +64,11 @@ class RestaurantViewController: UIViewController {
         Utils.setNavigationItems(viewController: self, rightButtons: [MoreIconBarButtonItem()], leftButtons: [WhitePathIconBarButtonItem(), UIBarButtonItem(customView: backButton)])
         
         self.navigationController?.isNavigationBarHidden = false
-
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        logger.info(message: "View Just Appeared")
         Utils.setupDarkNavBar(viewController: self, title: kNavigationBarTitle)
         self.navigationController?.isNavigationBarHidden = false
         Utils.setupBackButton(button: backButton, title: kBackButtonTitle, textColor: UIColor.white)
@@ -79,8 +85,9 @@ class RestaurantViewController: UIViewController {
     
     /** call to Restaurant API to receive recommendations.
      - parameter occasion: user defined setting to look up
-    */
+     */
     func getRestaurantRecommendations(occasion: String) {
+        logger.info(message: "Looking for restaurants")
         
         endpointManager.requestRestaurantRecommendations(
             endpoint: occasion,
@@ -88,12 +95,12 @@ class RestaurantViewController: UIViewController {
                 self.theRestaurants = mockData
                 self.setUpTableView()
                 self.setupStackView(isLoading: false)
-            },
+        },
             success: { recommendations in
                 self.theRestaurants = Utils.parseRecommendationsJSON(recommendations: recommendations as! [[String : Any]])
                 self.setUpTableView()
                 self.setupStackView(isLoading: false)
-            }
+        }
         )
     }
     
@@ -110,13 +117,13 @@ class RestaurantViewController: UIViewController {
         }
         let configuration = NSDictionary(contentsOfFile: configurationPath)
         GMSPlacesClient.provideAPIKey(configuration?["googlePlacesAPIKey"] as! String)
-
-
+        
+        
         registerNibWithTableView(identifier: "restaurant", nibName: "RecommendedRestaurantTableViewCell", tableView: self.tableView)
-
+        
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = kEstimatedHeightForRowAtIndexPath
-
+        
         tableView.estimatedSectionFooterHeight = 0
         tableView.estimatedSectionHeaderHeight = 9
         tableView.sectionFooterHeight = UITableViewAutomaticDimension
@@ -126,10 +133,10 @@ class RestaurantViewController: UIViewController {
     @IBAction func didPressBackButton(_ sender: AnyObject) {
         _ = self.navigationController?.popViewController(animated: true)
     }
-
+    
     /**
      Method registers a nib defined by the identifier String parameter and the nibName String parameter with the tableVIew parameter
-
+     
      - parameter identifier: String
      - parameter nibName:    String
      - parameter tableView:  UITableView
@@ -152,15 +159,15 @@ class RestaurantViewController: UIViewController {
 }
 
 /**
-
+ 
  MARK: UITableViewDelegate
-
+ 
  */
 extension RestaurantViewController: UITableViewDelegate {
     
     /**
      Method that defines the action that is taken when a cell of the table view is  selected, in this case we segue to the recommendation detail view controller if the cell selected is at indexPath.row 0
-
+     
      - parameter tableView: UITableView
      - parameter indexPath: NSIndexPath
      */
@@ -208,43 +215,43 @@ extension RestaurantViewController: UITableViewDelegate {
 }
 
 /**
-
+ 
  MARK: UITableViewDataSource
-
+ 
  */
 extension RestaurantViewController: UITableViewDataSource {
-
+    
     /**
      Method that returns the number of section in the table view by asking the view model
-
+     
      - parameter tableView: UITableView
-
+     
      - returns: Int
      */
     func numberOfSections(in tableView: UITableView) -> Int {
         return theRestaurants.count
     }
-
-
+    
+    
     /**
      Method that returns the number of rows in the section by asking the view model
-
+     
      - parameter tableView: UITableView
      - parameter section:   Int
-
+     
      - returns: Int
      */
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return kNumberOfRowsInTableViewSection
     }
-
-
+    
+    
     /**
      Method that returns the cell for row at indexPath by asking the view model to set up th cell
-
+     
      - parameter tableView: UITableView
      - parameter indexPath: NSIndexPath
-
+     
      - returns: UITableViewCell
      */
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
