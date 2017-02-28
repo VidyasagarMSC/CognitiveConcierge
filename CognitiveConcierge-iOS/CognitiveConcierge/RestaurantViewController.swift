@@ -19,8 +19,9 @@ import UIKit
 import GooglePlaces
 import BMSCore
 import BMSAnalytics
+import CoreLocation
 
-class RestaurantViewController: UIViewController {
+class RestaurantViewController: UIViewController, CLLocationManagerDelegate  {
     
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var bannerView: UIView!
@@ -30,8 +31,11 @@ class RestaurantViewController: UIViewController {
     var chosenRestaurant: Restaurant?
     var keyWords = [String: String]()
     var timeInput: String?
+    var locationManager: CLLocationManager!
     
     fileprivate var occasion: String?
+    var longitude: String?
+    var latitude: String?
     private var loadingView : HorizontalOnePartStackView?
     fileprivate var onePartStackView : HorizontalOnePartStackView?
     private var mySubview : UIView?
@@ -53,9 +57,15 @@ class RestaurantViewController: UIViewController {
         super.viewDidLoad()
         loadKeyWords()
         
+        locationManager = CLLocationManager()
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+        
         self.onePartStackView = HorizontalOnePartStackView.instanceFromNib()
         self.setupStackView(isLoading: true)
-        getRestaurantRecommendations(occasion: self.occasion!)
+        getRestaurantRecommendations(occasion: self.occasion!,longitude: self.longitude!, latitude: self.latitude!)
         
         // Set up the navigation bar
         Utils.setupDarkNavBar(viewController: self, title: kNavigationBarTitle)
@@ -86,11 +96,15 @@ class RestaurantViewController: UIViewController {
     /** call to Restaurant API to receive recommendations.
      - parameter occasion: user defined setting to look up
      */
-    func getRestaurantRecommendations(occasion: String) {
+    func getRestaurantRecommendations(occasion: String,longitude:String,latitude:String) {
         logger.info(message: "Looking for restaurants")
         
-        endpointManager.requestRestaurantRecommendations(
+        //CHANGED
+        endpointManager.requestRecommendations(
             endpoint: occasion,
+            type: "restaurants",
+            longitude: longitude,
+            latitude: latitude,
             failure: { mockData in
                 self.theRestaurants = mockData
                 self.setUpTableView()
@@ -156,6 +170,25 @@ class RestaurantViewController: UIViewController {
             }
         }
     }
+    
+    /*func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let userLocation:CLLocation = locations[0] as CLLocation
+        
+        // Call stopUpdatingLocation() to stop listening for location updates,
+        // other wise this function will be called every time when user location changes.
+        
+        //manager.stopUpdatingLocation()
+        //longitude = String(userLocation.coordinate.longitude)
+        //latitude = String (userLocation.coordinate.latitude)
+        
+        print("user latitude = \(userLocation.coordinate.latitude)")
+        print("user longitude = \(userLocation.coordinate.longitude)")
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error)
+    {
+        print("Error \(error)")
+    }*/
 }
 
 /**
@@ -341,5 +374,7 @@ extension RestaurantViewController {
     func loadKeyWords() {
         occasion = keyWords["occasions"] ?? "None"
         timeInput = timeInput ?? "Any Time"
+        longitude = longitude ?? "-115.17"
+        latitude = latitude ?? "36.11"
     }
 }

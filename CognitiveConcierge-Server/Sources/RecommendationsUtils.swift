@@ -101,6 +101,52 @@ func getClosestRestaurants(_ occasion:String, success: ([RestaurantJ]) -> Void) 
     success(closestRestaurants)
 }
 
+func getClosestPlaces(_ occasion:String, longitude:String, latitude:String, type:String, success: ([RestaurantJ]) -> Void) {
+    Log.verbose("Getting closest restaurants")
+    
+    let path = "/maps/api/place/nearbysearch/json" + "?"
+        + "key=" + Constants.googleAPIKey + "&" // api key
+        + "location=" + latitude + "," + longitude + "&" // replace with the location we want to search in
+        + "rankby=distance" + "&" // rank the results by distance to get the closest 20
+        + "type=" + type // the type of place we want to search
+        + "&keyword="+occasion // we can insert keywords to search for here
+    var requestOptions: [ClientRequest.Options] = []
+    requestOptions.append(.method("GET"))
+    requestOptions.append(.schema("https://"))
+    requestOptions.append(.hostname("maps.googleapis.com"))
+    requestOptions.append(.path(path))
+    
+    var closestRestaurants: [JSON] = []
+    
+    let req = HTTP.request(requestOptions) { resp in
+        if let resp = resp, resp.statusCode == HTTPStatusCode.OK {
+            do {
+                var body = Data()
+                try resp.readAllData(into: &body)
+                let response = JSON(data: body)
+                let errorMessage = response["error_message"]
+                if let errorMessageStr = errorMessage.rawString(), errorMessageStr != "null" {
+                    Log.error("Error in closest restaurants response: " + errorMessageStr)
+                }
+                closestRestaurants = response["results"].arrayValue
+                
+            } catch {
+                Log.error("Error parsing JSON from closest restaurants response")
+            }
+        } else {
+            if let resp = resp {
+                //request failed
+                Log.error("Error retrieving closest restaurants; status code \(resp.statusCode) returned")
+            } else {
+                Log.error("Error retrieving closest restaurants")
+            }
+        }
+    }
+    req.end()
+    success(closestRestaurants)
+}
+
+
 func getRestaurantDetails(_ restaurantID: String, success: (RestaurantDetails) -> Void) {
     Log.verbose("Getting restaurant details")
 

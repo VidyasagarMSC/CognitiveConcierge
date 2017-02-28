@@ -67,14 +67,14 @@ router.get("/places") {
 
 // Get restaurant reviews
 router.get("/api/v1/restaurants") { request, response, next in
-    guard let occasion = request.queryParameters["occasion"] else {
+    guard let occasion = request.queryParameters["occasion"], let longitude = request.queryParameters["longitude"], let latitude = request.queryParameters["latitude"] else {
         response.status(HTTPStatusCode.badRequest)
-        Log.error("Request does not contain occasion")
+        Log.error("Request does not contain required values")
         return
     }
     response.headers["Content-Type"] = "text/plain; charset=utf-8"
     Log.verbose("getting restaurant reviews")
-    getClosestRestaurants(occasion) { restaurants in
+    getClosestPlaces(occasion,longitude: longitude,latitude: latitude, type: "restaurant" ) { restaurants in
 
         var restaurantDetails = [JSON]()
         var theRestaurants = [Restaurant]()
@@ -128,8 +128,86 @@ router.get("/api/v1/restaurants") { request, response, next in
     }
 }
 
+//CHANGED
+
+// Get restaurant reviews
+router.get("/api/v1/:name") { request, response, next in
+    guard let name=request.parameters["name"], let occasion = request.queryParameters["occasion"], let longitude = request.queryParameters["longitude"], let latitude = request.queryParameters["latitude"] else {
+        response.status(HTTPStatusCode.badRequest)
+        Log.error("Request does not contain required values")
+        return
+    }
+    
+    
+    response.headers["Content-Type"] = "text/plain; charset=utf-8"
+    Log.verbose("getting restaurant reviews")
+    
+    switch(name)
+    {
+        
+    case "restaurant","store":
+        getClosestPlaces(occasion,longitude: longitude,latitude: latitude,type: name ) { restaurants in
+        
+        var restaurantDetails = [JSON]()
+        var theRestaurants = [Restaurant]()
+        for restaurant in restaurants {
+            let restaurantID = restaurant["place_id"].stringValue
+            
+            getRestaurantDetails(restaurantID) { details in
+                Log.verbose("Restaurant details returned")
+                //if no expense, set to 0
+                let expense = restaurant["price_level"].int ?? 0
+                let name = restaurant["name"].string ?? ""
+                let isOpenNowInt = restaurant["opening_hours"]["open_now"].int ?? 0
+                let isOpenNow = isOpenNowInt == 0 ? false : true
+                let periods = details["opening_hours"]["periods"].array ?? [""]
+                let rating = restaurant["rating"].double ?? 0
+                let address = details["formatted_address"].string ?? ""
+                let website = details["website"].string ?? ""
+                
+                let reviews = details["reviews"].array ?? ["text"]
+                var theReviews = [String]()
+                Log.verbose("Replacing special characters in reviews")
+                for review in reviews {
+                    var reviewText = review["text"].string ?? ""
+                    reviewText = reviewText.replacingOccurrences(of: "\"", with: " \\\"")
+                    reviewText = reviewText.replacingOccurrences(of: "\n", with: " ")
+                    theReviews.append(reviewText)
+                }
+                
+                let openingTimeNow = parsePeriods(periods: periods)
+                
+                let theRestaurant = Restaurant(googleID: restaurantID, isOpenNow: isOpenNow, openingTimeNow: openingTimeNow, name: name, rating: rating, expense: expense, address: address, reviews: theReviews, website: website)
+                theRestaurant.populateWatsonKeywords({(result) in
+                    let restKeywords = result
+                    theRestaurants.append(theRestaurant)
+                }, failure: { error in
+                    do {
+                        try response.status(.failedDependency).send(json: JSON(error)).end()
+                    } catch {
+                        Log.error(error.localizedDescription)
+                    }
+                })
+                restaurantDetails.append(details)
+            }
+        }
+        let matches = bestMatches(theRestaurants, occasion: occasion)
+        do {
+            try response.status(.OK).send(JSON(matches).rawString() ?? "").end()
+        } catch {
+            Log.error("Error responding with restaurant matches")
+        }
+    }
+    break;
+    
+    default:
+        break;
+    }
+}
+
+
 let (ip, port) = parseAddress()
 
-CloudFoundryDeploymentTracker(repositoryURL: "https://github.com/IBM-MIL/CognitiveConcierge", codeVersion: nil).track()
+//CloudFoundryDeploymentTracker(repositoryURL: "https://github.com/IBM-MIL/CognitiveConcierge", codeVersion: nil).track()
 Kitura.addHTTPServer(onPort: port, with: router)
 Kitura.run()

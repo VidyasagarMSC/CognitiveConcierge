@@ -49,6 +49,27 @@ class EndpointManager: NSObject {
             }
         }
     }
+    
+    func requestRecommendations(endpoint: String, type:String, longitude:String, latitude:String, failure: @escaping ([Restaurant]) -> Void, success: @escaping ([Any]) -> Void) {
+        let url = getBaseRequestURL() + "/api/v1/restaurants?occasion=" + endpoint + "&longitude=" + longitude + "&latitude=" + latitude
+        
+        // Execute REST request to get all restaurant recommendations from API
+        Alamofire.request(url, encoding: JSONEncoding.default).responseJSON { response in
+            switch response.result {
+            case .success(let theJSON):
+                let jsonResponse = theJSON as! [Any]
+                success(jsonResponse)
+                
+            case .failure(let err):
+                print ("using mock data due to err: \(err)")
+                if endpoint == "date" {
+                    failure(self.useMockData(fileNameSetting: "anniversary"))
+                }
+                failure(self.useMockData(fileNameSetting: endpoint))
+            }
+        }
+    }
+
 
     func useMockData(fileNameSetting: String) -> [Restaurant] {
         var restaurants = [Restaurant]()

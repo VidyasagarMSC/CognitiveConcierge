@@ -36,6 +36,10 @@ class MessagesViewController: JSQMessagesViewController {
     private var decisionsViewBottomSpacingConstraint : NSLayoutConstraint!
     private var defaultDecisionsViewBottomSpacingConstraintConstant : CGFloat!
     
+    //Location
+    fileprivate var longitude: String?
+    fileprivate var latitude: String?
+    
     var viewModel: MessagesViewModel!
     
     // Flag to determine when to show buttons.
@@ -73,6 +77,8 @@ class MessagesViewController: JSQMessagesViewController {
         self.navigationController?.isNavigationBarHidden = true
         
         super.viewDidLoad()
+        
+        setupLocationServices()
         
         //set up text bubbles for JSQMessages
         setupTextBubbles()
@@ -341,6 +347,8 @@ class MessagesViewController: JSQMessagesViewController {
         if let restaurantsVC = segue.destination as? RestaurantViewController {
             restaurantsVC.keyWords = self.viewModel.watsonEntities
             restaurantsVC.timeInput = self.viewModel.timeInput
+            restaurantsVC.latitude = self.latitude
+            restaurantsVC.longitude = self.longitude
         }
     }
 }
@@ -405,6 +413,10 @@ extension MessagesViewController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         // Grab last object to get the most recent updated location and send to backend.
         //let location:CLLocation = locations[locations.count-1] as CLLocation
+        let userLocation:CLLocation = locations[0] as CLLocation
+        
+        longitude = String(userLocation.coordinate.longitude)
+        latitude = String (userLocation.coordinate.latitude)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
