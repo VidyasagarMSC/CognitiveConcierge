@@ -5,12 +5,12 @@
 	<key>appRouteLocal</key>
 	<string>http://localhost:8090</string>
 	<key>appRouteRemote</key>
-	<string>appRouteRemote</string>
+	<string>https://cognitiveconcierge-tricksy-polypeptide.mybluemix.net</string>
 	<key>bluemixAppGUID</key>
 	<string>appGuid</string>
 	<key>bluemixAppRegion</key>
 	<string>appRegion</string>
 	<key>isLocal</key>
-	<true/>
+	<false/>
 </dict>
 </plist>

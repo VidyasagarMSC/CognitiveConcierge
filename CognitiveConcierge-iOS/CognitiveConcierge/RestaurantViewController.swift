@@ -57,11 +57,11 @@ class RestaurantViewController: UIViewController, CLLocationManagerDelegate  {
         super.viewDidLoad()
         loadKeyWords()
         
-        locationManager = CLLocationManager()
+       /* locationManager = CLLocationManager()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
+        locationManager.startUpdatingLocation()*/
         
         self.onePartStackView = HorizontalOnePartStackView.instanceFromNib()
         self.setupStackView(isLoading: true)
@@ -102,7 +102,7 @@ class RestaurantViewController: UIViewController, CLLocationManagerDelegate  {
         //CHANGED
         endpointManager.requestRecommendations(
             endpoint: occasion,
-            type: "restaurants",
+            type: "restaurant",
             longitude: longitude,
             latitude: latitude,
             failure: { mockData in

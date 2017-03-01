@@ -51,7 +51,8 @@ class EndpointManager: NSObject {
     }
     
     func requestRecommendations(endpoint: String, type:String, longitude:String, latitude:String, failure: @escaping ([Restaurant]) -> Void, success: @escaping ([Any]) -> Void) {
-        let url = getBaseRequestURL() + "/api/v1/restaurants?occasion=" + endpoint + "&longitude=" + longitude + "&latitude=" + latitude
+        let url = getBaseRequestURL() + "/api/v1/" + type + "?occasion=" + endpoint + "&longitude=" + longitude + "&latitude=" + latitude
+        print("URL" + url)
         
         // Execute REST request to get all restaurant recommendations from API
         Alamofire.request(url, encoding: JSONEncoding.default).responseJSON { response in
