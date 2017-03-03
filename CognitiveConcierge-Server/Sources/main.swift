@@ -145,7 +145,7 @@ router.get("/api/v1/:name") { request, response, next in
     switch(name)
     {
         
-    case "restaurant","store":
+    case "restaurant","store","shopping_mall","point_of_interest","museum","food","lodging","spa","casino":
         getClosestPlaces(occasion,longitude: longitude,latitude: latitude,type: name ) { restaurants in
         
         var restaurantDetails = [JSON]()

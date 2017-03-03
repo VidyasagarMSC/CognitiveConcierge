@@ -32,6 +32,7 @@ class RestaurantViewController: UIViewController, CLLocationManagerDelegate  {
     var keyWords = [String: String]()
     var timeInput: String?
     var locationManager: CLLocationManager!
+    var type : String?
     
     fileprivate var occasion: String?
     var longitude: String?
@@ -45,9 +46,9 @@ class RestaurantViewController: UIViewController, CLLocationManagerDelegate  {
     
     //// Endpoint manager to make API calls.
     private let endpointManager = EndpointManager.sharedInstance
-    private let kNavigationBarTitle = "Restaurants"
+    private var kNavigationBarTitle = "Places"
     private let kBackButtonTitle = "CHAT"
-    fileprivate let kLocationText = "LAS VEGAS, NV"
+    fileprivate var kLocationText = "LAS VEGAS, NV"
     fileprivate let kHeightForHeaderInSection:CGFloat = 10
     fileprivate let kEstimatedHeightForRowAtIndexPath:CGFloat = 104.0
     fileprivate let kNumberOfRowsInTableViewSection = 1
@@ -56,6 +57,7 @@ class RestaurantViewController: UIViewController, CLLocationManagerDelegate  {
         logger.info(message: "App Just loaded")
         super.viewDidLoad()
         loadKeyWords()
+        Pluralize()
         
        /* locationManager = CLLocationManager()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -63,12 +65,13 @@ class RestaurantViewController: UIViewController, CLLocationManagerDelegate  {
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()*/
         
+        
         self.onePartStackView = HorizontalOnePartStackView.instanceFromNib()
         self.setupStackView(isLoading: true)
-        getRestaurantRecommendations(occasion: self.occasion!,longitude: self.longitude!, latitude: self.latitude!)
+        getRestaurantRecommendations(occasion: self.occasion!,type:self.type!, longitude: self.longitude!, latitude: self.latitude!)
         
         // Set up the navigation bar
-        Utils.setupDarkNavBar(viewController: self, title: kNavigationBarTitle)
+        Utils.setupDarkNavBar(viewController: self, title: kNavigationBarTitle )
         
         // set up navigation items.
         Utils.setNavigationItems(viewController: self, rightButtons: [MoreIconBarButtonItem()], leftButtons: [WhitePathIconBarButtonItem(), UIBarButtonItem(customView: backButton)])
@@ -96,13 +99,13 @@ class RestaurantViewController: UIViewController, CLLocationManagerDelegate  {
     /** call to Restaurant API to receive recommendations.
      - parameter occasion: user defined setting to look up
      */
-    func getRestaurantRecommendations(occasion: String,longitude:String,latitude:String) {
+    func getRestaurantRecommendations(occasion: String,type: String, longitude:String,latitude:String) {
         logger.info(message: "Looking for restaurants")
         
         //CHANGED
         endpointManager.requestRecommendations(
             endpoint: occasion,
-            type: "restaurant",
+            type: type,
             longitude: longitude,
             latitude: latitude,
             failure: { mockData in
@@ -165,9 +168,35 @@ class RestaurantViewController: UIViewController, CLLocationManagerDelegate  {
         if let recommendationsVC = segue.destination as? RestaurantDetailViewController {
             if let restaurant = chosenRestaurant {
                 recommendationsVC.chosenRestaurant = restaurant
+                recommendationsVC.backButtonTitle = kNavigationBarTitle
             } else {
                 print("no chosen restaurant found in restaurant VC")
             }
+        }
+    }
+    
+    func Pluralize()
+    {
+        switch(type!)
+        {
+          case "restaurant":
+            kNavigationBarTitle = "RESTAURANTS"
+            break
+          
+          case "spa":
+            kNavigationBarTitle = "SPAS"
+            break
+            
+        case "casino":
+            kNavigationBarTitle = "CASINOS"
+            break
+            
+            
+        default:
+            kNavigationBarTitle = "PLACES"
+            break
+
+
         }
     }
     
@@ -336,7 +365,52 @@ extension RestaurantViewController {
         return cell
     }
     
+    func locationFromLongitudeLatitude(){
+    
+        let location = CLLocation(latitude: Double(latitude!)!, longitude: Double(longitude!)!);
+        print(location)
+        
+        CLGeocoder().reverseGeocodeLocation(location, completionHandler: {(placemarks, error) -> Void in
+            print(location)
+            
+            if error != nil {
+                print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
+                return
+            }
+            
+            if (placemarks?.count)! > 0 {
+                let pm = placemarks?[0] as CLPlacemark!
+                 self.displayLocationInfo(placemark: pm)
+                //locationName = (pm?.locality)!
+                print("Locality:" + (pm?.locality)! )
+            }
+            else {
+                print("Problem with the data received from geocoder")
+            }
+            
+        })
+       
+        
+    }
+    
+    func displayLocationInfo(placemark: CLPlacemark?) {
+        if let containsPlacemark = placemark
+        {
+            //stop updating location to save battery life
+            //locationManager.stopUpdatingLocation()
+            print((containsPlacemark.locality != nil) ? containsPlacemark.locality! : "")
+            print((containsPlacemark.postalCode != nil) ? containsPlacemark.postalCode! : "")
+            //print((placemark.administrativeArea != nil) ? placemark.administrativeArea! : "")
+            print((containsPlacemark.country != nil) ? containsPlacemark.country! : "")
+            
+            kLocationText = containsPlacemark.locality! + "," + containsPlacemark.country!
+        }
+    }
+
+    
     func setupStackView(isLoading:Bool) {
+        locationFromLongitudeLatitude()
+
         if(isLoading) {
             setupLoadingWatsonView()
             
@@ -344,14 +418,15 @@ extension RestaurantViewController {
             guard let stackView = onePartStackView else {
                 return
             }
-            let occasionInput = occasion ?? ""
+                        let occasionInput = occasion ?? ""
             let time = timeInput ?? ""
-            stackView.setUpData(occasion: occasionInput.uppercased(), location: kLocationText, time: time.uppercased())
+            stackView.setUpData(occasion: occasionInput.uppercased(), location: kLocationText.uppercased(), time: time.uppercased())
             stackView.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: bannerView.frame.height)
             bannerView.addSubview(stackView)
             doneLoading()
         }
     }
+    
     
     func setupLoadingWatsonView() {
         watsonOverlay = WatsonOverlay.instanceFromNib(view: self.view)
@@ -376,5 +451,6 @@ extension RestaurantViewController {
         timeInput = timeInput ?? "Any Time"
         longitude = longitude ?? "-115.17"
         latitude = latitude ?? "36.11"
+        type = type ?? "restaurant"
     }
 }

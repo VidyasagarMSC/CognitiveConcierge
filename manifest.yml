@@ -13,7 +13,8 @@ declared-services:
     label: alchemy_api
     plan: free
 applications:
-- name: CognitiveConcierge
+- name: CognitiveConcierge-IC17
+  host: CognitiveConcierge-IC17
   path: ./CognitiveConcierge-Server
   random-route: true
   command: restaurant-recommendations -bind 0.0.0.0:$PORT
@@ -25,4 +26,3 @@ applications:
   - CognitiveConcierge-Conversation
   - CognitiveConcierge-Speech-To-Text
   - CognitiveConcierge-Text-To-Speech
-  - CognitiveConcierge-Alchemy

@@ -29,6 +29,7 @@ class EntertainmentOptionsViewController: UIViewController {
     var convoContext: Context?
     var greeting: String?
     var tts: TextToSpeech!
+    var type: String?
     
     // To use for Watson conversation service
     private var convoService: Conversation!
@@ -38,8 +39,8 @@ class EntertainmentOptionsViewController: UIViewController {
     fileprivate let kCellCount = 3
     private let kLabelText = "WHAT CAN I HELP YOU FIND?"
     fileprivate let kRestaurantLabelText = "RESTAURANTS"
-    fileprivate let kVacationsLabelText = "VACATIONS"
-    fileprivate let kShowsLabelText = "SHOWS"
+    fileprivate let kVacationsLabelText = "SPAS"
+    fileprivate let kShowsLabelText = "CASINOS"
     private let kConversationErrorCode = -6004
     private let kInternetErrorCode = -10049
 
@@ -133,6 +134,7 @@ class EntertainmentOptionsViewController: UIViewController {
         }
     }
     
+    
     // Show alert to connect device to internet.
     func alertUserWithMessage(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
@@ -171,6 +173,9 @@ class EntertainmentOptionsViewController: UIViewController {
             // Call to JSQMessage to display Watson's greeting in a text bubble.
             messagesVC.viewModel.storeWatsonReply(date: Date(), output: greeting)
             messagesVC.viewModel.synthesizeText(text: greeting)
+            
+            // Passing type from the entry page
+            messagesVC.type = self.type
         }
     }
 }
@@ -224,14 +229,20 @@ extension EntertainmentOptionsViewController: UICollectionViewDataSource {
             case 0:
                 // Restaurants clicked
                 collectionCellPressed()
+                type = "restaurant"
+                
             case 1:
                 // Vacations clicked
-                alertUserWithMessage(title: kRestaurantsAlertTitle, message: kRestaurantsAlertMessage)
-                gestureRecognizer.isEnabled = true;
+                /*alertUserWithMessage(title: kRestaurantsAlertTitle, message: kRestaurantsAlertMessage)
+                gestureRecognizer.isEnabled = true;*/
+                collectionCellPressed()
+                type = "spa"
             case 2:
                 // Shows clicked
-                alertUserWithMessage(title: kRestaurantsAlertTitle, message: kRestaurantsAlertMessage)
-                gestureRecognizer.isEnabled = true;
+                //alertUserWithMessage(title: kRestaurantsAlertTitle, message: kRestaurantsAlertMessage)
+                //gestureRecognizer.isEnabled = true;
+                collectionCellPressed()
+                type = "casino"
             default:
                 break
             }

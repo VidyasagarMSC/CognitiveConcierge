@@ -104,12 +104,19 @@ func getClosestRestaurants(_ occasion:String, success: ([RestaurantJ]) -> Void) 
 func getClosestPlaces(_ occasion:String, longitude:String, latitude:String, type:String, success: ([RestaurantJ]) -> Void) {
     Log.verbose("Getting closest restaurants")
     
-    let path = "/maps/api/place/nearbysearch/json" + "?"
+    
+    var path = "/maps/api/place/nearbysearch/json" + "?"
         + "key=" + Constants.googleAPIKey + "&" // api key
         + "location=" + latitude + "," + longitude + "&" // replace with the location we want to search in
         + "rankby=distance" + "&" // rank the results by distance to get the closest 20
         + "type=" + type // the type of place we want to search
-        + "&keyword="+occasion // we can insert keywords to search for here
+        //+ "&keyword="+occasion // we can insert keywords to search for here
+    
+    if(type == "restaurant" || type == "food")
+    {
+      path = path + "&keyword=" + occasion
+    }
+    
     var requestOptions: [ClientRequest.Options] = []
     requestOptions.append(.method("GET"))
     requestOptions.append(.schema("https://"))

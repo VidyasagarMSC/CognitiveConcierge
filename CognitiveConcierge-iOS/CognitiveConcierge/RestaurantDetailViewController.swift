@@ -22,13 +22,14 @@ class RestaurantDetailViewController: UIViewController {
 
     var chosenRestaurant:Restaurant!    /* Restaurant chosen by the user to see details. */
     var reviewKeywords:String!
+    var backButtonTitle:String!
     
     @IBOutlet weak var eventDetailHolderView: UIView!
     @IBOutlet weak var backButton: UIButton!
     @IBOutlet weak var scrollViewContentView: UIView!
     @IBOutlet weak var restaurantDetailHolderView: UIView!
     
-    let kBackButtonTitle = "RESTAURANTS"
+    //let kBackButtonTitle = "RESTAURANTS"
     /// restaurant detail view
     weak var restaurantDetailView: RecommendedRestaurantDetailView!
     private let buttonFrame = CGRect.init(x: 31, y: 39.5, width: 109, height: 13)
@@ -42,6 +43,7 @@ class RestaurantDetailViewController: UIViewController {
         setUpHolderViewWithRestaurant()
         setupRecommendedRestaurantDetailView()
         eventDetailHolderView.addSubview(restaurantDetailView)
+        backButtonTitle = backButtonTitle!
         
         // set up navigation items.
 
@@ -54,7 +56,7 @@ class RestaurantDetailViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         self.navigationController?.isNavigationBarHidden = false
         // Set up the navigation bar so that we can color the nav bar to be dark blue, and the default symbols to be white.
-        Utils.setupBackButton(button: backButton, title: kBackButtonTitle, textColor: UIColor.white, frame: buttonFrame)
+        Utils.setupBackButton(button: backButton, title: backButtonTitle, textColor: UIColor.white, frame: buttonFrame)
         
         // set up navigation items.
         Utils.setNavigationItems(viewController: self, rightButtons: [MoreIconBarButtonItem()], leftButtons: [WhitePathIconBarButtonItem(), UIBarButtonItem(customView: backButton)])

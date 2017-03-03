@@ -35,6 +35,7 @@ class MessagesViewController: JSQMessagesViewController {
     private var decisionsView : DecisionsView?
     private var decisionsViewBottomSpacingConstraint : NSLayoutConstraint!
     private var defaultDecisionsViewBottomSpacingConstraintConstant : CGFloat!
+    var type : String?
     
     //Location
     fileprivate var longitude: String?
@@ -78,7 +79,10 @@ class MessagesViewController: JSQMessagesViewController {
         
         super.viewDidLoad()
         
+        //set up location
         setupLocationServices()
+        
+        type = type ?? "restaurant"
         
         //set up text bubbles for JSQMessages
         setupTextBubbles()
@@ -318,6 +322,7 @@ class MessagesViewController: JSQMessagesViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(MessagesViewController.seeRestaurantsButtonPressed(object:)), name: NSNotification.Name(rawValue: "seeRestaurantsButtonPressed"), object: nil)
     }
     
+    
     @objc private func keepChattingButtonPressed ( object: AnyObject) {
         hideDecisionsView()
         reachedEndOfConversation = false
@@ -349,6 +354,7 @@ class MessagesViewController: JSQMessagesViewController {
             restaurantsVC.timeInput = self.viewModel.timeInput
             restaurantsVC.latitude = self.latitude
             restaurantsVC.longitude = self.longitude
+            restaurantsVC.type = self.type
         }
     }
 }
